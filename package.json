@@ -1,0 +1,14 @@
+{
+  "name": "draftbot",
+  "version": "1.0.0",
+  "description": "undercards draft bot",
+  "main": "index.js",
+  "scripts": {
+  },
+  "author": "feildmaster",
+  "license": "MIT",
+  "contributors": [
+    "korkin",
+    "feildmaster"
+  ]
+}
