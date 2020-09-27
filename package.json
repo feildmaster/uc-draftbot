@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "description": "undercards draft bot",
   "main": "index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "feildmaster",
   "license": "MIT",
   "contributors": [
     "korkin",
     "feildmaster"
-  ]
+  ],
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "eris": "^0.13.3"
+  }
 }
