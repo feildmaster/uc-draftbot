@@ -16,8 +16,8 @@ exports.load = () => {
   });
 };
 
-exports.pick = (rarity = 'any', type = 'mix') => {
-  const subset = cards.filter((card) => validateRarity(card, rarity) && validateType(card, type));
+exports.pick = (rarity = 'any', type = 'mix', baseIsCommon = true) => {
+  const subset = cards.filter((card) => validateRarity(card, rarity, baseIsCommon) && validateType(card, type));
   shuffle(subset);
   return subset[0];
 };
