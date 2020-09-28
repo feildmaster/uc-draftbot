@@ -38,7 +38,7 @@ function validateRarity({rarity: cardRarity = ''}, rarity = '', baseIsCommon = t
   }
 }
 
-function validateType({type: cardType = ''}, type = '') {
+function validateType({extension: cardType = ''}, type = '') {
   switch(type.toLowerCase()) {
     case 'deltarune':
     case 'dr': return cardType === 'DELTARUNE';
