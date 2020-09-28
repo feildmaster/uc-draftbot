@@ -32,6 +32,7 @@ function validateRarity({rarity: cardRarity = ''}, rarity = '', baseIsCommon = t
     case 'rare': return cardRarity === 'RARE'
     case 'common': return cardRarity === 'COMMON' || baseIsCommon && cardRarity === 'BASE';
     case 'base': return cardRarity === 'BASE';
+    case 'all':
     case 'any': return true;
     default: return false;
   }
