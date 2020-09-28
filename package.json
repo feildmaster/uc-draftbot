@@ -12,6 +12,7 @@
   ],
   "dependencies": {
     "dotenv": "^8.2.0",
-    "eris": "^0.13.3"
+    "eris": "^0.13.3",
+    "needle": "^2.5.2"
   }
 }

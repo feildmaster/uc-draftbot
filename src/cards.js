@@ -1,10 +1,19 @@
-// Fetch cards from undercards
+const needle = require('needle');
 const shuffle = require('./util/shuffle');
 
 const cards = [];
 
 exports.load = () => {
-  return Promise.resolve();
+  return needle('https://undercards.net/AllCards').then((res) => {
+    if (res.body && res.body.cards) {
+      return JSON.parse(res.body.cards);
+    }
+  }).then((res) => {
+    if (res) {
+      if (cards.length) cards.splice(0, cards.length); // Clear cards
+      cards.push(...res);
+    }
+  });
 };
 
 exports.pick = (rarity = 'any', type = 'mix') => {
