@@ -1,7 +1,6 @@
 require('dotenv').config();
 const cards = require('./src/cards');
 const Discord = require('eris').Client;
-const random = require('./src/util/random');
 
 const token = process.env.TOKEN;
 const prefixes = loadPrefixes();
@@ -31,28 +30,6 @@ function kickUser() {}
 function chooseCard() {}
 
 function openPack() {} // NOTE: not necessary, simulate vanilla pack opening
-
-function buildPack(size = 8, type='mix') {
-  const pack = [];
-  for (let i = 0; i < size; i++) {
-    pack.push(cards.pick(pickRarity(), type));
-  }
-  return pack;
-}
-
-function pickRarity() {
-  const needle = random(10000);
-  if (needle < 3) {
-    return 'determination';
-  } else if (needle < 100) {
-    return 'legendary';
-  } else if (needle < 1500) {
-    return 'epic';
-  } else if (needle < 5000) {
-    return 'rare';
-  }
-  return 'common';
-}
 
 function loadPrefixes() {
   const set = new Set();
