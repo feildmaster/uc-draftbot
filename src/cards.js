@@ -27,13 +27,13 @@ function validateRarity({rarity: cardRarity = ''}, rarity = '', baseIsCommon = t
     case 'determination':
     case 'dt': return cardRarity === 'DETERMINATION';
     case 'legendary':
-    case 'legend': return cardRarity === 'DETERMINATION';
+    case 'legend': return cardRarity === 'LEGENDARY';
     case 'epic': return cardRarity === 'EPIC';
     case 'rare': return cardRarity === 'RARE'
     case 'common': return cardRarity === 'COMMON' || baseIsCommon && cardRarity === 'BASE';
     case 'base': return cardRarity === 'BASE';
     case 'all':
-    case 'any': return true;
+    case 'any': return cardRarity !== 'GENERATED'; // Generated is not allowed
     default: return false;
   }
 }
@@ -45,6 +45,8 @@ function validateType({extension: cardType = ''}, type = '') {
     case 'base':
     case 'undertale':
     case 'ut': return cardType === 'BASE';
+    case 'all':
+    case 'any':
     case 'mix': return true;
     default: return false;
   }
