@@ -14,8 +14,8 @@ connection.on('messageCreate', (msg) => {
   if (ignoreSelf || ignoreBots) return;
   
   const filtered = msg.content.replace(/<@!/g, '<@');
-  // TODO: @mention handling is wrong, probably (too tired for this)
-  msg.prefix = prefixes.find((pref) => filtered.startsWith(pref === '@mention' ? connection.user.mention : pref));
+  const from = prefixes.map((pref) => pref.replace('@mention', connection.user.mention)).filter(_ => _);
+  const prefix = from.find((pref) => filtered.startsWith(pref));
   // TODO: Parse command
 });
 

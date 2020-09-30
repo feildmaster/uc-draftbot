@@ -70,6 +70,7 @@ module.exports = class Draft extends Emitter {
       }).then(() => {
         this.emit('nextRound');
       }).catch(() => {
+        context.reply(`Error starting draft ${this.id}`);
         running = false;
       });
     });
