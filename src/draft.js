@@ -13,6 +13,7 @@ module.exports = class Draft extends Emitter {
     users = [],
     packs = ['dr', 'dr'],
     defaultPack = 'ut',
+    owner = {},
   } = {}) {
     super();
     this.id = id++;
@@ -21,14 +22,14 @@ module.exports = class Draft extends Emitter {
     this.packSize = packSize;
     this.packs = packs;
     this.defaultPack = defaultPack;
+    this.running = false;
 
     let participants = [];
-    let running = false;
     let category = null;
 
     this.on('start', (context) => {
-      if (running) {
-        context.reply(`Draft${this.id}: ${running === true ? 'Already running' : 'Finished'}.`);
+      if (this.running) {
+        context.reply(`Draft${this.id}: ${this.running === true ? 'Already running' : 'Finished'}.`);
         return;
       }
       if (!participants.length) {
@@ -36,7 +37,7 @@ module.exports = class Draft extends Emitter {
         return;
       }
       const guildID = context.guildID;
-      running = true;
+      this.running = true;
       connection.createChannel(guildID, `draft${this.id}`, 4, {
         permissionOverwrites: [{ // Everyone role
           id: guildID,
@@ -69,13 +70,14 @@ module.exports = class Draft extends Emitter {
         return Promise.all(promises);
       }).then(() => {
         this.emit('nextRound');
+        context.reply(`Draft${this.id}: Started!`);
       }).catch(() => {
-        context.reply(`Error starting draft ${this.id}`);
-        running = false;
+        context.reply(`Error starting Draft${this.id}`);
+        this.running = false;
       });
     });
     this.on('nextRound', () => {
-      if (!running) return;
+      if (this.running !== true) return;
       // Check threshold
       if (participants[0].cards.length >= cardThreshold) {
         this.emit('finish');
@@ -103,7 +105,7 @@ module.exports = class Draft extends Emitter {
       });
     });
     this.on('pickCard', (user, card) => {
-      if (!running) return;
+      if (this.running !== true) return;
      const draftee = participants.find((entry) => entry.userID === user.id || user);
      if (!draftee || draftee.chosen || card < 1 || card > draftee.pack.length) return;
      const selected = draftee.pack.splice(card - 1, 1)[0];
@@ -112,15 +114,15 @@ module.exports = class Draft extends Emitter {
      connection.createMessage(draftee.channel, `Chosen card ${card}: ${selected.name}`);
     });
     this.on('pickCard', () => {
-      if (!running) return;
+      if (this.running !== true) return;
       // Check if still waiting
       const waiting = participants.some((draftee) => !draftee.chosen);
       if (waiting) return;
       this.emit('nextRound');
     });
     this.on('finish', () => {
-      if (!running) return;
-      running = 'finished';
+      if (this.running === 'finished') return;
+      this.running = 'finished';
       // Send decks to participants
       participants.forEach((draftee) => {
         const deck = draft.cards.map((card, i) => `${i + 1}: ${card.name}`).join('\n');
@@ -128,10 +130,11 @@ module.exports = class Draft extends Emitter {
       });
     });
     this.on('kick', (user) => {
+      if (this.running !== true) return;
       // TODO: kick the user
     });
     this.on('clear', () => {
-      if (!running || !category) return;
+      if (!this.running || !category) return;
       const promises = category.channels.map((channel) => connection.deleteChannel(channel.id));
       Promise.all(promises)
         .then(() => connection.deleteChannel(category.id))
