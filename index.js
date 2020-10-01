@@ -2,12 +2,13 @@ require('dotenv').config();
 const cards = require('./src/cards');
 const Discord = require('eris');
 const Draft = require('./src/draft');
+const loadPrefixes = require('./src/util/loadPrefixes');
 const parseArray = require('./src/util/parseArray');
 const parseFlags = require('./src/util/parseFlags');
 const shuffle = require('./src/util/shuffle');
 
 const token = process.env.TOKEN;
-const prefixes = loadPrefixes();
+const prefixes = loadPrefixes(process.env.PREFIXES, ['@mention', '!']);
 const userRegex = /<@(\d+)>/g;
 
 const connection = new Discord.Client(token);
@@ -63,14 +64,13 @@ function startDraft(msg, rawText = '', args = [], flags = {}) {
   if (!users.length) {
     return context.reply('Malformed command. Users required.');
   }
-  const packs = parseArray(flags.packs, false);
   currentDraft = new Draft(connection, msg.guild, {
     owner: msg.author,
     users: shuffle(users),
-    cardThreshold: flags.threshold,
+    cardThreshold: flags.threshold || flags.cardThreshold,
     packSize: flags.packSize || flags.size,
-    packs,
-    defaultPack: flags.defaultPack,
+    packs: parseArray(flags.packs, false),
+    defaultPack: flags.defaultPack || flags.default,
   });
 
   currentDraft.emit('start', context);
@@ -80,7 +80,7 @@ function kickUser(msg, rawText, args, flags) {}
 
 function chooseCard(msg, rawText, args, flags) {}
 
-function findUsers(string = '') {
+function findUsers(string = '') { // TODO: Also find user IDs that aren't specifically pings
   return [...new Set(Array.from(rawText.matchAll(userRegex), m => m[1])).values()];
 }
 
@@ -93,23 +93,4 @@ function getContext(msg) {
       return connection.createMessage(msg.channel.id, content);
     }
   };
-}
-
-function loadPrefixes() {
-  const set = new Set();
-
-  let temp = ['@mention', '!'];
-  if (process.env.PREFIX) {
-    try {
-      temp = JSON.parse(process.env.PREFIX);
-    } catch {}
-  }
-  
-  if (Array.isArray(temp)) {
-    temp.forEach((e) => set.add(e));
-  } else if (typeof temp === 'string') {
-    set.add(temp);
-  }
-
-  return [...set.values()];
 }
