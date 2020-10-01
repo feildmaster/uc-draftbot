@@ -1,6 +1,7 @@
 require('dotenv').config();
 const cards = require('./src/cards');
 const Discord = require('eris').Client;
+const parseFlags = require('./src/util/parseFlags');
 
 const token = process.env.TOKEN;
 const prefixes = loadPrefixes();
@@ -16,21 +17,35 @@ connection.on('messageCreate', (msg) => {
   const filtered = msg.content.replace(/<@!/g, '<@');
   const from = prefixes.map((pref) => pref.replace('@mention', connection.user.mention)).filter(_ => _);
   const prefix = from.find((pref) => filtered.startsWith(pref));
-  // TODO: Parse command
+  
+  if (!prefix) return;
+  const {
+    message: rawText = '',
+    flags = {},
+  } = parseFlags(filtered.substring(prefix.length));
+
+  const args = rawText.split(/\s+/g);
+  const command = (args.shift() || '').toLowerCase();
+
+  if (!command) return;
+  msg.prefix = prefix;
+  msg.command = command;
+  connection.emit(`command:${command}`, msg, rawText, args, flags);
 });
 
 cards.load()
   .then(() => connection.connect());
 
-function startDraft() {
+connection.on('command:start', startDraft);
+connection.on('command:startDraft', startDraft);
+
+function startDraft(msg, rawText, args, flags) {
   // Create Category, Create sub-channels
 }
 
-function kickUser() {}
+function kickUser(msg, rawText, args, flags) {}
 
-function chooseCard() {}
-
-function openPack() {} // NOTE: not necessary, simulate vanilla pack opening
+function chooseCard(msg, rawText, args, flags) {}
 
 function loadPrefixes() {
   const set = new Set();

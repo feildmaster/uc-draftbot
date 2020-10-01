@@ -10,6 +10,9 @@
     "korkin",
     "feildmaster"
   ],
+  "engines": {
+    "node": "~12.0.0"
+  },
   "dependencies": {
     "dotenv": "^8.2.0",
     "eris": "^0.13.3",
