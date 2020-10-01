@@ -41,7 +41,11 @@ connection.on('messageCreate', (msg) => {
 });
 
 cards.load()
-  .then(() => connection.connect());
+  .then(() => connection.connect())
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });;
 
 connection.on('command:start', startDraft);
 connection.on('command:startdraft', startDraft);
