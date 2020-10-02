@@ -65,7 +65,7 @@ function startDraft(msg, rawText = '', args = [], flags = {}) {
     return context.reply('Malformed command. Users required.');
   }
   currentDraft = new Draft(connection, msg.guild, {
-    owner: msg.author,
+    owner: context.user,
     users: shuffle(users),
     cardThreshold: flags.threshold || flags.cardThreshold,
     packSize: flags.packSize || flags.size,
@@ -76,9 +76,9 @@ function startDraft(msg, rawText = '', args = [], flags = {}) {
   currentDraft.emit('start', context);
 }
 
-function kickUser(msg, rawText, args, flags) {}
+function kickUser(msg, rawText = '', args = [], flags = {}) {}
 
-function chooseCard(msg, rawText, args, flags) {}
+function chooseCard(msg, rawText = '', args = [], flags = {}) {}
 
 function findUsers(string = '') { // TODO: Also find user IDs that aren't specifically pings
   return [...new Set(Array.from(rawText.matchAll(userRegex), m => m[1])).values()];
@@ -88,6 +88,7 @@ function getContext(msg) {
   return {
     msg,
     user: msg.author,
+    channel: msg.channel,
     guildID: msg.guild.id,
     reply(content) {
       return connection.createMessage(msg.channel.id, content);

@@ -1,3 +1,4 @@
+const { Permission } = require('eris');
 const pack = require('./pack');
 
 const Emitter = require('events').EventEmitter;
@@ -13,7 +14,9 @@ module.exports = class Draft extends Emitter {
     users = [],
     packs = ['dr', 'dr'],
     defaultPack = 'ut',
-    owner = {},
+    owner = {
+      id: 0,
+    },
   } = {}) {
     super();
     this.id = id++;
@@ -104,14 +107,23 @@ module.exports = class Draft extends Emitter {
         connection.createMessage(draftee.channel, message);
       });
     });
-    this.on('pickCard', (user, card) => {
-      if (this.running !== true) return;
-     const draftee = participants.find((entry) => entry.userID === user.id || user);
-     if (!draftee || draftee.chosen || card < 1 || card > draftee.pack.length) return;
-     const selected = draftee.pack.splice(card - 1, 1)[0];
-     draftee.cards.push(selected);
-     draftee.chosen = true;
-     connection.createMessage(draftee.channel, `Chosen card ${card}: ${selected.name}`);
+    this.on('pickCard', (context, card) => {
+      if (this.running !== true) return undefined;
+      const { channel, user } = context;
+      const draftee = participants.find((entry) => entry.userID === user.id || user);
+      if (!draftee) {
+        return context.reply('Not registered to Draft.');
+      } else if (draftee.chosen) {
+        return context.reply('You have already chosen. Please wait for the others to choose.');
+      } else if (card < 1 || card > draftee.pack.length) {
+        return context.reply(`Invalid input: ${card}`);
+      } else if (draftee.channel !== channel.id || channel) {
+        return context.reply('Move to your draft room to use this command.');
+      }
+      const selected = draftee.pack.splice(card - 1, 1)[0];
+      draftee.cards.push(selected);
+      draftee.chosen = true;
+      return context.reply(`Chosen card ${card}: ${selected.name}`);
     });
     this.on('pickCard', () => {
       if (this.running !== true) return;
@@ -133,12 +145,20 @@ module.exports = class Draft extends Emitter {
       if (this.running !== true) return;
       // TODO: kick the user
     });
-    this.on('clear', () => {
+    this.on('clear', (context) => {
       if (!this.running || !category) return;
+      if (context.user.id !== owner.id && !context.channel.permissionsOf(context.user.id).has(Permissions.administrator)) {
+        return context.reply('Only owner can clear draft.');
+      }
       const promises = category.channels.map((channel) => connection.deleteChannel(channel.id));
-      Promise.all(promises)
+      return Promise.all(promises)
         .then(() => connection.deleteChannel(category.id))
-        .then(() => category = null);
+        .then(() => {
+          category = null;
+          context.reply('Cleared draft rooms.');
+        }).catch((e = '') => {
+          context.reply(`Error clearing draft: ${e.message || e}`);
+        });
     });
 
     users.forEach((user) => participants.push({
