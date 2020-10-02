@@ -102,6 +102,7 @@ module.exports = class Draft extends Emitter {
       // Message current pack
       participants.forEach((draftee) => {
         const message = draftee.pack.map((card, i) => `${i + 1}: ${card.name}`).join('\n');
+        draftee.chosen = false;
         connection.createMessage(draftee.channel, message);
       });
     });
