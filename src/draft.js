@@ -88,6 +88,10 @@ module.exports = class Draft extends Emitter {
     });
     this.on('nextRound', () => {
       if (this.running !== true) return;
+      if (!participants.length) {
+        this.emit('clear');
+        return;
+      }
       // Check threshold
       if (participants[0].cards.length >= cardThreshold) {
         this.emit('finish');
@@ -169,7 +173,7 @@ module.exports = class Draft extends Emitter {
     this.on('kick', process);
     this.on('clear', (context) => {
       if (!this.running || !category) return;
-      if (isOwner(context, owner.id || owner)) {
+      if (context && isOwner(context, owner.id || owner)) {
         this.emit('cleared', 'Missing Permissions');
         return context.reply('Only owner can clear draft.');
       }
@@ -178,12 +182,17 @@ module.exports = class Draft extends Emitter {
         .then(() => connection.deleteChannel(category.id))
         .then(() => {
           category = null;
-          context.reply('Cleared draft rooms.');
           this.emit('finished');
           this.emit('cleared');
+          return 'Cleared draft rooms.';
         }).catch((e = '') => {
-          context.reply(`Error clearing draft: ${e.message || e}`);
+          context.reply();
           this.emit('cleared', e);
+          return `Error clearing draft: ${e.message || e}`;
+        }).then((msg) => {
+          if (context && msg) {
+            context.reply(msg);
+          }
         });
     });
 
