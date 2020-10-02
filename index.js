@@ -38,7 +38,7 @@ connection.on('messageCreate', (msg) => {
   if (!command) return;
   msg.prefix = prefix;
   msg.command = command;
-  connection.emit(`command:${command}`, msg, rawText, args, flags);
+  connection.emit(`command:${command}`, msg, args, flags);
 });
 
 cards.load()
@@ -59,7 +59,7 @@ connection.on('command:pick', chooseCard);
 connection.on('command:pickcard', chooseCard);
 connection.on('command:kick', kickUser);
 
-function startDraft(msg, rawText = '', args = [], flags = {}) {
+function startDraft(msg, args = [], flags = {}) {
   const context = getContext(msg);
   if (currentDraft && currentDraft.running) {
     if (currentDraft.running !== 'finished') {
@@ -85,18 +85,20 @@ function startDraft(msg, rawText = '', args = [], flags = {}) {
   currentDraft.emit('start', context);
 }
 
-function kickUser(msg, rawText = '', args = [], flags = {}) {
+function kickUser(msg, args = []) {
+  if (!currentDraft) return;
   const context = getContext(msg);
   const users = findUsers(args.join(' ')).map((id) => msg.guild.members.get(id) || id);
+  currentDraft.emit('kick', context, users);
 }
 
-function chooseCard(msg, rawText = '', args = [], flags = {}) {
+function chooseCard(msg, args = []) {
   if (!currentDraft) return;
   const context = getContext(msg);
   currentDraft.emit('pick', context, args[0]);
 }
 
-function clear(msg, rawText = '', args = [], flags = {}) {
+function clear(msg) {
   const context = getContext(msg);
   if (!currentDraft) return context.reply('No draft ongoing');
   currentDraft.emit('clear', context);

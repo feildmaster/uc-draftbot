@@ -142,9 +142,24 @@ module.exports = class Draft extends Emitter {
         connection.createMessage(draftee.channel, `Your deck:\n${deck}`);
       });
     });
-    this.on('kick', (context, user) => {
+    this.on('kick', (context, users = []) => {
       if (this.running !== true) return;
-      // TODO: kick the user
+      const resp = [];
+      users.forEach((user) => {
+        resp.push(new Promise((res) => {
+          const draftee = participants.find((entry) => entry.userID === user.id || user);
+          if (!draftee) {
+            return res('Not found');
+          }
+          const promise = Promise.resolve(draftee.channel ? connection.deleteChannel(draftee.channel) : 'No channel');
+          res(promise.then(() => {
+            participants.splice(participants.indexOf(draftee), 1);
+            return 'Kicked'; 
+          }).catch(() => 'Failed to kick'));
+        }).then(resp => `${user.username || user}: ${resp}`));
+      });
+      Promise.all(resp)
+        .then(responses => context.reply(responses.join('\n')) || 'Invalid syntax.');
     });
     this.on('clear', (context) => {
       if (!this.running || !category) return;
