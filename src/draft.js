@@ -168,9 +168,9 @@ module.exports = class Draft extends Emitter {
         }).then(resp => `${user.nick || user.username && `${user.username}#${user.discriminator}` || user}: ${resp}`));
       });
       Promise.all(resp)
-        .then(responses => context.reply(responses.join('\n')) || 'Invalid syntax.');
+        .then(responses => context.reply(responses.join('\n') || 'Invalid syntax.'))
+        .then(process);
     });
-    this.on('kick', process);
     this.on('clear', (context) => {
       if (!this.running || !category) return;
       if (context && isOwner(context, owner.id || owner)) {
