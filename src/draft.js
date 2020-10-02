@@ -144,7 +144,7 @@ module.exports = class Draft extends Emitter {
     this.on('kick', (context, users = []) => {
       if (this.running !== true) return;
       const resp = [];
-      if (context.user.id !== owner.id && !context.channel.permissionsOf(context.user.id).has(Permissions.administrator)) {
+      if (context.user.id !== owner.id && !context.channel.permissionsOf(context.user.id).has('administrator')) {
         return context.reply('Only owner can kick.');
       }
       users.forEach((user) => {
@@ -165,7 +165,7 @@ module.exports = class Draft extends Emitter {
     });
     this.on('clear', (context) => {
       if (!this.running || !category) return;
-      if (context.user.id !== owner.id && !context.channel.permissionsOf(context.user.id).has(Permissions.administrator)) {
+      if (context.user.id !== owner.id && !context.channel.permissionsOf(context.user.id).has('administrator')) {
         this.emit('cleared', 'Missing Permissions');
         return context.reply('Only owner can clear draft.');
       }
