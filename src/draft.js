@@ -30,6 +30,15 @@ module.exports = class Draft extends Emitter {
     let participants = [];
     let category = null;
 
+    const process = () => {
+      if (this.running !== true) return;
+      // Check if still waiting
+      const waiting = participants.some((draftee) => !draftee.chosen);
+      if (!waiting || !participants.length) {
+        this.emit('nextRound');
+      }
+    };
+
     this.on('start', (context) => {
       if (this.running) {
         context.reply(`Draft${this.id}: ${this.running === true ? 'Already running' : 'Finished'}.`);
@@ -124,13 +133,7 @@ module.exports = class Draft extends Emitter {
       draftee.chosen = true;
       return context.reply(`Chosen card ${card}: ${selected.name}`);
     });
-    this.on('pick', () => {
-      if (this.running !== true) return;
-      // Check if still waiting
-      const waiting = participants.some((draftee) => !draftee.chosen);
-      if (waiting) return;
-      this.emit('nextRound');
-    });
+    this.on('pick', process);
     this.on('finish', () => {
       if (this.running === 'finished') return;
       this.running = 'finished';
@@ -163,6 +166,7 @@ module.exports = class Draft extends Emitter {
       Promise.all(resp)
         .then(responses => context.reply(responses.join('\n')) || 'Invalid syntax.');
     });
+    this.on('kick', process);
     this.on('clear', (context) => {
       if (!this.running || !category) return;
       if (isOwner(context, owner.id || owner)) {
