@@ -81,6 +81,8 @@ function startDraft(msg, args = [], flags = {}) {
     packSize: flags.packSize || flags.size,
     packs: parseArray(flags.packs, false),
     defaultPack: flags.defaultPack || flags.default,
+  }).on('cleared', (err) => {
+    if (!err) currentDraft = null;
   });
 
   currentDraft.emit('start', context);
@@ -103,9 +105,6 @@ function clear(msg) {
   const context = getContext(msg);
   if (!currentDraft) return context.reply('No draft ongoing');
   currentDraft.emit('clear', context);
-  currentDraft.once('cleared', (err) => {
-    if (!err) currentDraft = null;
-  });
 }
 
 function findUsers(string = '') { // TODO: Also find user IDs that aren't specifically pings
