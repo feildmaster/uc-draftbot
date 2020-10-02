@@ -144,6 +144,9 @@ module.exports = class Draft extends Emitter {
     this.on('kick', (context, users = []) => {
       if (this.running !== true) return;
       const resp = [];
+      if (context.user.id !== owner.id && !context.channel.permissionsOf(context.user.id).has(Permissions.administrator)) {
+        return context.reply('Only owner can kick.');
+      }
       users.forEach((user) => {
         resp.push(new Promise((res) => {
           const draftee = participants.find((draftee) => draftee.user === (user.id || user));
