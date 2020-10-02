@@ -97,6 +97,65 @@ const commands = [new Command({
   handler: kickUser,
 })];
 
+const helpCommand = new Command({
+  title: 'Draft Commands',
+  alias: ['help'],
+  usage: '[command]',
+  description: 'Show help text.',
+  handler(context, args = []) {
+    const command = (args.length && (commands.find((cmd) => cmd.alias.includes(args[0].toLowerCase())) || context.reply('Command not found.'))) || helpCommand;
+    if (!(command instanceof Command)) return;
+    const label = args.length ? args[0] : context.msg.command;
+    const prefix = context.msg.prefix;
+    const commandText = `${prefix}${label}`;
+    const embed = {
+      title: command.title || command.alias[0],
+      color: 1794964,
+      fields: [{
+        name: '❯ Usage',
+        value: `\`${commandText} ${command.usage}\``,
+      }, {
+        name: '❯ Aliases',
+        value: command.alias.filter(a => a !== label.toLowerCase()).map(a => `\`${a}\``).join(', ') || '`None`',
+      }],
+    };
+
+    if (command.description) {
+      embed.description = command.description;
+    }
+
+    if (command.flags.length) {
+      embed.fields.push({
+        name: '❯ Flags',
+        value: command.flags.map(i => `\`--${i.alias[0]}${i.usage ? ` ${i.usage}` : ''}\` - ${i.description}${i.default ? ` (default: \`${i.default}\`)` : ''}${
+          i.alias.length > 1 ? `\n - Aliases: ${i.alias.slice(1).map(a => `\`--${a}\``).join(', ')}` : ''
+        }`).join('\n'),
+      });
+    }
+
+    if (command.examples.length) {
+      embed.fields.push({
+        name: '❯ Examples',
+        value: command.examples.map(a => `\`${commandText} ${a}\``).join('\n'),
+      });
+    }
+
+    if (!args.length && command === helpCommand) {
+      embed.fields.push({
+        name: '❯ Commands',
+        value: commands.filter(_ => _ !== helpCommand).map(c => `\`${prefix}${c.alias[0]}\`${c.description ? ` - ${c.description.split('\n')[0]}` : ''}`).join('\n'),
+      });
+    }
+
+    embed.fields.push({
+      name: '❯ Legend',
+      value: '`<required>, [optional], ...multiple`',
+    });
+    context.reply({ embed });
+  },
+});
+commands.push(helpCommand);
+
 commands.forEach((command) => {
   command.alias.forEach((alias) => {
     connection.on(`command:${alias}`, command.handler)
