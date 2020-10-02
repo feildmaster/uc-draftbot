@@ -137,7 +137,7 @@ module.exports = class Draft extends Emitter {
       if (!category) return;
       // Send decks to participants
       participants.forEach((draftee) => {
-        const deck = draft.cards.map((card, i) => `${i + 1}: ${card.name}`).join('\n');
+        const deck = draftee.cards.map((card, i) => `${i + 1}: ${card.name}`).join('\n');
         connection.createMessage(draftee.channel, `Your deck:\n${deck}`);
       });
     });
