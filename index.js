@@ -113,7 +113,7 @@ const helpCommand = new Command({
       color: 1794964,
       fields: [{
         name: '❯ Usage',
-        value: `\`${commandText} ${command.usage}\``,
+        value: `\`${commandText}${command.usage ? ` ${command.usage}` : ''}\``,
       }, {
         name: '❯ Aliases',
         value: command.alias.filter(a => a !== label.toLowerCase()).map(a => `\`${a}\``).join(', ') || '`None`',
@@ -128,7 +128,7 @@ const helpCommand = new Command({
       embed.fields.push({
         name: '❯ Flags',
         value: command.flags.map(i => `\`--${i.alias[0]}${i.usage ? ` ${i.usage}` : ''}\` - ${i.description}${i.default ? ` (default: \`${i.default}\`)` : ''}${
-          i.alias.length > 1 ? `\n - Aliases: ${i.alias.slice(1).map(a => `\`--${a}\``).join(', ')}` : ''
+          i.alias.length > 1 ? `\n • Aliases: ${i.alias.slice(1).map(a => `\`--${a}\``).join(', ')}` : ''
         }`).join('\n'),
       });
     }
