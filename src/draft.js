@@ -59,7 +59,7 @@ module.exports = class Draft extends Emitter {
         participants.forEach((draftee, i) => {
           // Create a channel for the user
           promises.push(connection.createChannel(guildID, `room${i + 1}`, 0, {
-            parent_id: category.id,
+            parentID: category.id,
             permissionOverwrites: [{
               id: draftee.user,
               type: 'member',

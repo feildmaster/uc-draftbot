@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "undercards draft bot",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "start": "node index.js"
+  },
   "author": "feildmaster",
   "license": "MIT",
   "contributors": [

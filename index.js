@@ -16,7 +16,7 @@ const connection = new Discord.Client(token);
 let currentDraft = null; // TODO: temporary
 
 connection.on('messageCreate', (msg) => {
-  if (!(msg instanceof Discord.GuildChannel)) return;
+  if (!(msg.channel instanceof Discord.GuildChannel)) return;
   // TODO: flags to bypass self/bots
   const ignoreSelf = msg.author.id === connection.user.id;
   const ignoreBots = msg.author.bot;
@@ -43,6 +43,7 @@ connection.on('messageCreate', (msg) => {
 
 cards.load()
   .then(() => connection.connect())
+  .then(() => console.log('Connected'))
   .catch((e) => {
     console.error(e);
     process.exit(1);
@@ -69,11 +70,11 @@ function startDraft(msg, args = [], flags = {}) {
     }
   }
   // Create Category, Create sub-channels
-  const users = findUsers(args.join(' ')).map((id) => msg.guild.members.get(id) || id);
+  const users = findUsers(args.join(' ')).map((id) => msg.channel.guild.members.get(id) || id);
   if (!users.length) {
     return context.reply('Malformed command. Users required.');
   }
-  currentDraft = new Draft(connection, msg.guild, {
+  currentDraft = new Draft(connection, msg.channel.guild, {
     owner: context.user,
     users: shuffle(users),
     cardThreshold: flags.threshold || flags.cardThreshold,
@@ -116,7 +117,7 @@ function getContext(msg) {
     msg,
     user: msg.author,
     channel: msg.channel,
-    guildID: msg.guild.id,
+    guildID: msg.guildID || msg.channel.guild.id,
     reply(content) {
       return connection.createMessage(msg.channel.id, content);
     }
