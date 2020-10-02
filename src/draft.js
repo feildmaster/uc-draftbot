@@ -41,26 +41,24 @@ module.exports = class Draft extends Emitter {
       }
       const guildID = context.guildID;
       this.running = true;
-      connection.createChannel(guildID, `draft${this.id}`, 4, {
-        permissionOverwrites: [{ // Everyone role
-          id: guildID,
-          type: 'role',
-          allow: 0,
-          deny: Permissions.readMessages,
-        }, { // Bot member
-          id: connection.user.id,
-          type: 'member',
-          allow: Permissions.readMessages,
-          deny: 0,
-        }],
-      }).then((cat) => {
+      connection.createChannel(guildID, `draft${this.id}`, 4).then((cat) => {
         category = cat;
         const promises = [];
         participants.forEach((draftee, i) => {
           // Create a channel for the user
           promises.push(connection.createChannel(guildID, `room${i + 1}`, 0, {
             parentID: category.id,
-            permissionOverwrites: [{
+            permissionOverwrites: [{ // Everyone role
+              id: guildID,
+              type: 'role',
+              allow: 0,
+              deny: Permissions.readMessages,
+            }, { // Bot member
+              id: connection.user.id,
+              type: 'member',
+              allow: Permissions.readMessages,
+              deny: 0,
+            }, { // Owner
               id: draftee.user,
               type: 'member',
               allow: Permissions.readMessages,
@@ -110,14 +108,14 @@ module.exports = class Draft extends Emitter {
     this.on('pick', (context, card = 0) => {
       if (this.running !== true) return undefined;
       const { channel, user } = context;
-      const draftee = participants.find((entry) => entry.userID === user.id || user);
+      const draftee = participants.find((draftee) => draftee.user === (user.id || user));
       if (!draftee) {
         return context.reply('Not registered to Draft.');
       } else if (draftee.chosen) {
         return context.reply('You have already chosen. Please wait for the others to choose.');
       } else if (card < 1 || card > draftee.pack.length) {
         return context.reply(`Invalid input: ${card}`);
-      } else if (draftee.channel !== channel.id || channel) {
+      } else if (draftee.channel !== (channel.id || channel)) {
         return context.reply('Move to your draft room to use this command.');
       }
       const selected = draftee.pack.splice(card - 1, 1)[0];
@@ -147,7 +145,7 @@ module.exports = class Draft extends Emitter {
       const resp = [];
       users.forEach((user) => {
         resp.push(new Promise((res) => {
-          const draftee = participants.find((entry) => entry.userID === user.id || user);
+          const draftee = participants.find((draftee) => draftee.user === (user.id || user));
           if (!draftee) {
             return res('Not found');
           }
