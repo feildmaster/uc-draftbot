@@ -53,11 +53,11 @@ cards.load()
 // TODO: Move to commands folder
 const commands = [new Command({
   title: 'Start Draft',
-  alias: ['start', 'startdraft', 'draft'],
+  alias: ['start', 'startDraft', 'draft'],
   usage: '<@user1> [... @userX]',
   description: 'Start a draft',
   flags: [{
-    alias: ['cardThreshold', 'threshold', 'cards'],
+    alias: ['cards', 'cardThreshold', 'deck', 'threshold'],
     usage: '<#>',
     default: 40,
     description: 'Build a deck of at least X size.',
@@ -80,12 +80,12 @@ const commands = [new Command({
   handler: startDraft,
 }), new Command({
   title: 'Clear Draft',
-  alias: ['stop', 'clear', 'cleardraft'],
+  alias: ['stop', 'clear', 'clearDraft'],
   description: 'Stop a draft, delete associated channels.',
   handler: clear,
 }), new Command({
   title: 'Pick Card',
-  alias: ['pick', 'pickcard', 'choose', 'choosecard'],
+  alias: ['pick', 'pickCard', 'choose', 'chooseCard'],
   usage: '<#>',
   description: 'Pick a card.',
   handler: chooseCard,
@@ -158,7 +158,7 @@ commands.push(helpCommand);
 
 commands.forEach((command) => {
   command.alias.forEach((alias) => {
-    connection.on(`command:${alias}`, command.handler)
+    connection.on(`command:${alias.toLowerCase()}`, command.handler)
   });
 });
 
@@ -178,7 +178,7 @@ function startDraft(context, args = [], flags = {}) {
   currentDraft = new Draft(connection, context.guild, {
     owner: context.user,
     users: shuffle(users),
-    cardThreshold: flags.threshold || flags.cardThreshold || flags.cards,
+    cardThreshold: flags.threshold || flags.cardThreshold || flags.cards || flags.deck,
     packSize: flags.packSize || flags.size,
     packs: parseArray(flags.packs, false),
     defaultPack: flags.defaultPack || flags.default,
