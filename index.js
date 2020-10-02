@@ -34,12 +34,12 @@ connection.on('messageCreate', (msg) => {
   } = parseFlags(filtered.substring(prefix.length));
 
   const args = rawText.split(/\s+/g);
-  const command = (args.shift() || '').toLowerCase();
+  const command = args.shift() || '';
 
   if (!command) return;
   msg.prefix = prefix;
   msg.command = command;
-  connection.emit(`command:${command}`, getContext(msg), args, flags);
+  connection.emit(`command:${command.toLowerCase()}`, getContext(msg), args, flags);
 });
 
 cards.load()
@@ -52,6 +52,7 @@ cards.load()
 
 // TODO: Move to commands folder
 const commands = [new Command({
+  title: 'Start Draft',
   alias: ['start', 'startdraft', 'draft'],
   usage: '<@user1> [... @userX]',
   description: 'Start a draft',
@@ -78,15 +79,18 @@ const commands = [new Command({
   }],
   handler: startDraft,
 }), new Command({
+  title: 'Clear Draft',
   alias: ['stop', 'clear', 'cleardraft'],
-  description: 'Stop the draft.',
+  description: 'Stop a draft, delete associated channels.',
   handler: clear,
 }), new Command({
+  title: 'Pick Card',
   alias: ['pick', 'pickcard', 'choose', 'choosecard'],
   usage: '<#>',
   description: 'Pick a card.',
   handler: chooseCard,
 }), new Command({
+  title: 'Kick User(s)',
   alias: ['kick'],
   usage: '<@user1> [... @userX]',
   description: 'Kick user(s)',
