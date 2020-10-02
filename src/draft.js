@@ -114,7 +114,7 @@ module.exports = class Draft extends Emitter {
         return context.reply('Not registered to Draft.');
       } else if (draftee.chosen) {
         return context.reply('You have already chosen. Please wait for the others to choose.');
-      } else if (card < 1 || card > draftee.pack.length) {
+      } else if (parseInt(card, 10) === NaN || card < 1 || card > draftee.pack.length) {
         return context.reply(`Invalid input: ${card}`);
       } else if (draftee.channel !== (channel.id || channel)) {
         return context.reply('Move to your draft room to use this command.');
