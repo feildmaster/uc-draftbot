@@ -106,7 +106,7 @@ function clear(msg, rawText = '', args = [], flags = {}) {
 }
 
 function findUsers(string = '') { // TODO: Also find user IDs that aren't specifically pings
-  return [...new Set(Array.from(rawText.matchAll(userRegex), m => m[1])).values()];
+  return [...new Set(Array.from(string.matchAll(userRegex), m => m[1])).values()];
 }
 
 function getContext(msg) {
