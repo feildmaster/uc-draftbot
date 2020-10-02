@@ -6,6 +6,7 @@ const loadPrefixes = require('./src/util/loadPrefixes');
 const parseArray = require('./src/util/parseArray');
 const parseFlags = require('./src/util/parseFlags');
 const shuffle = require('./src/util/shuffle');
+const Command = require('./src/command');
 
 const token = process.env.TOKEN;
 const prefixes = loadPrefixes(process.env.PREFIXES, ['@mention', '!']);
@@ -47,18 +48,56 @@ cards.load()
   .catch((e) => {
     console.error(e);
     process.exit(1);
-  });;
+  });
 
-connection.on('command:start', startDraft);
-connection.on('command:startdraft', startDraft);
-connection.on('command:draft', startDraft);
-connection.on('command:clear', clear);
-connection.on('command:cleardraft', clear);
-connection.on('command:choose', chooseCard);
-connection.on('command:choosecard', chooseCard);
-connection.on('command:pick', chooseCard);
-connection.on('command:pickcard', chooseCard);
-connection.on('command:kick', kickUser);
+// TODO: Move to commands folder
+const commands = [new Command({
+  alias: ['start', 'startdraft', 'draft'],
+  usage: '<@user1> [... @userX]',
+  description: 'Start a draft',
+  flags: [{
+    alias: ['cardThreshold', 'threshold', 'cards'],
+    usage: '<#>',
+    default: 40,
+    description: 'Build a deck of at least X size.',
+  }, {
+    alias: ['packSize', 'size'],
+    usage: '<#>',
+    default: 8,
+    description: 'Make packs X size.',
+  }, {
+    alias: ['packs'],
+    usage: '<ut | dr | mix>',
+    default: `['dr', 'dr']`,
+    description: 'Set pack type for the round.',
+  }, {
+    alias: ['defaultPack', 'default'],
+    usage: '<ut | dr | mix>',
+    default: 'ut',
+    description: 'Set default pack type',
+  }],
+  handler: startDraft,
+}), new Command({
+  alias: ['stop', 'clear', 'cleardraft'],
+  description: 'Stop the draft.',
+  handler: clear,
+}), new Command({
+  alias: ['pick', 'pickcard', 'choose', 'choosecard'],
+  usage: '<#>',
+  description: 'Pick a card.',
+  handler: chooseCard,
+}), new Command({
+  alias: ['kick'],
+  usage: '<@user1> [... @userX]',
+  description: 'Kick user(s)',
+  handler: kickUser,
+})];
+
+commands.forEach((command) => {
+  command.alias.forEach((alias) => {
+    connection.on(`command:${alias}`, command.handler)
+  });
+});
 
 function startDraft(msg, args = [], flags = {}) {
   const context = getContext(msg);
