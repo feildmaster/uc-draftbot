@@ -156,7 +156,7 @@ module.exports = class Draft extends Emitter {
             participants.splice(participants.indexOf(draftee), 1);
             return 'Kicked'; 
           }).catch(() => 'Failed to kick'));
-        }).then(resp => `${user.username || user}: ${resp}`));
+        }).then(resp => `${user.nick || user.username && `${user.username}#${user.discriminator}` || user}: ${resp}`));
       });
       Promise.all(resp)
         .then(responses => context.reply(responses.join('\n')) || 'Invalid syntax.');
