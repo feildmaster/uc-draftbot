@@ -70,14 +70,14 @@ function startDraft(msg, args = [], flags = {}) {
     }
   }
   // Create Category, Create sub-channels
-  const users = findUsers(args.join(' ')).map((id) => msg.channel.guild.members.get(id) || id);
+  const users = findUsers(args.join(' ')).map((id) => context.guild.members.get(id) || id);
   if (!users.length) {
     return context.reply('Malformed command. Users required.');
   }
-  currentDraft = new Draft(connection, msg.channel.guild, {
+  currentDraft = new Draft(connection, context.guild, {
     owner: context.user,
     users: shuffle(users),
-    cardThreshold: flags.threshold || flags.cardThreshold,
+    cardThreshold: flags.threshold || flags.cardThreshold || flags.cards,
     packSize: flags.packSize || flags.size,
     packs: parseArray(flags.packs, false),
     defaultPack: flags.defaultPack || flags.default,
@@ -89,7 +89,7 @@ function startDraft(msg, args = [], flags = {}) {
 function kickUser(msg, args = []) {
   if (!currentDraft) return;
   const context = getContext(msg);
-  const users = findUsers(args.join(' ')).map((id) => msg.guild.members.get(id) || id);
+  const users = findUsers(args.join(' ')).map((id) => context.guild.members.get(id) || id);
   currentDraft.emit('kick', context, users);
 }
 
@@ -117,6 +117,7 @@ function getContext(msg) {
     msg,
     user: msg.author,
     channel: msg.channel,
+    guild: msg.channel.guild,
     guildID: msg.guildID || msg.channel.guild.id,
     reply(content) {
       return connection.createMessage(msg.channel.id, content)
