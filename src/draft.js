@@ -112,12 +112,12 @@ module.exports = class Draft extends Emitter {
       const draftee = participants.find((draftee) => draftee.user === (user.id || user));
       if (!draftee) {
         return context.reply('Not registered to Draft.');
+      } else if (draftee.channel !== (channel.id || channel)) {
+        return context.reply('Move to your draft room to use this command.');
       } else if (draftee.chosen) {
         return context.reply('You have already chosen. Please wait for the others to choose.');
       } else if (parseInt(card, 10) === NaN || card < 1 || card > draftee.pack.length) {
         return context.reply(`Invalid input: ${card}`);
-      } else if (draftee.channel !== (channel.id || channel)) {
-        return context.reply('Move to your draft room to use this command.');
       }
       const selected = draftee.pack.splice(card - 1, 1)[0];
       draftee.cards.push(selected);
