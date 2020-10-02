@@ -119,7 +119,8 @@ function getContext(msg) {
     channel: msg.channel,
     guildID: msg.guildID || msg.channel.guild.id,
     reply(content) {
-      return connection.createMessage(msg.channel.id, content);
+      return connection.createMessage(msg.channel.id, content)
+        .catch(console.error);
     }
   };
 }
