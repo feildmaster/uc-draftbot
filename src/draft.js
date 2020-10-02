@@ -97,7 +97,7 @@ module.exports = class Draft extends Emitter {
         while (i < participants.length - 1) {
           participants[i++].pack = participants[i].pack;
         }
-        participants[i] = temp;
+        participants[i].pack = temp;
       }
       // Message current pack
       participants.forEach((draftee) => {
