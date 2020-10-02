@@ -107,7 +107,7 @@ module.exports = class Draft extends Emitter {
         connection.createMessage(draftee.channel, message);
       });
     });
-    this.on('pickCard', (context, card) => {
+    this.on('pick', (context, card = 0) => {
       if (this.running !== true) return undefined;
       const { channel, user } = context;
       const draftee = participants.find((entry) => entry.userID === user.id || user);
@@ -125,7 +125,7 @@ module.exports = class Draft extends Emitter {
       draftee.chosen = true;
       return context.reply(`Chosen card ${card}: ${selected.name}`);
     });
-    this.on('pickCard', () => {
+    this.on('pick', () => {
       if (this.running !== true) return;
       // Check if still waiting
       const waiting = participants.some((draftee) => !draftee.chosen);
@@ -135,19 +135,21 @@ module.exports = class Draft extends Emitter {
     this.on('finish', () => {
       if (this.running === 'finished') return;
       this.running = 'finished';
+      if (!category) return;
       // Send decks to participants
       participants.forEach((draftee) => {
         const deck = draft.cards.map((card, i) => `${i + 1}: ${card.name}`).join('\n');
         connection.createMessage(draftee.channel, `Your deck:\n${deck}`);
       });
     });
-    this.on('kick', (user) => {
+    this.on('kick', (context, user) => {
       if (this.running !== true) return;
       // TODO: kick the user
     });
     this.on('clear', (context) => {
       if (!this.running || !category) return;
       if (context.user.id !== owner.id && !context.channel.permissionsOf(context.user.id).has(Permissions.administrator)) {
+        this.emit('cleared', 'Missing Permissions');
         return context.reply('Only owner can clear draft.');
       }
       const promises = category.channels.map((channel) => connection.deleteChannel(channel.id));
@@ -156,8 +158,11 @@ module.exports = class Draft extends Emitter {
         .then(() => {
           category = null;
           context.reply('Cleared draft rooms.');
+          this.emit('finished');
+          this.emit('cleared');
         }).catch((e = '') => {
           context.reply(`Error clearing draft: ${e.message || e}`);
+          this.emit('cleared', e);
         });
     });
 

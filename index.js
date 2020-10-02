@@ -51,12 +51,21 @@ cards.load()
 connection.on('command:start', startDraft);
 connection.on('command:startdraft', startDraft);
 connection.on('command:draft', startDraft);
+connection.on('command:clear', clear);
+connection.on('command:cleardraft', clear);
+connection.on('command:choose', chooseCard);
+connection.on('command:choosecard', chooseCard);
+connection.on('command:pick', chooseCard);
+connection.on('command:pickcard', chooseCard);
+connection.on('command:kick', kickUser);
 
 function startDraft(msg, rawText = '', args = [], flags = {}) {
   const context = getContext(msg);
   if (currentDraft && currentDraft.running) {
     if (currentDraft.running !== 'finished') {
       return context.reply(`Sorry, there's already a draft in progress.`);
+    } else { // TODO: Temporary until multi-draft allowed
+      return context.reply('Please clear current draft before starting new draft.');
     }
   }
   // Create Category, Create sub-channels
@@ -76,9 +85,25 @@ function startDraft(msg, rawText = '', args = [], flags = {}) {
   currentDraft.emit('start', context);
 }
 
-function kickUser(msg, rawText = '', args = [], flags = {}) {}
+function kickUser(msg, rawText = '', args = [], flags = {}) {
+  const context = getContext(msg);
+  const users = findUsers(args.join(' ')).map((id) => msg.guild.members.get(id) || id);
+}
 
-function chooseCard(msg, rawText = '', args = [], flags = {}) {}
+function chooseCard(msg, rawText = '', args = [], flags = {}) {
+  if (!currentDraft) return;
+  const context = getContext(msg);
+  currentDraft.emit('pick', context, args[0]);
+}
+
+function clear(msg, rawText = '', args = [], flags = {}) {
+  const context = getContext(msg);
+  if (!currentDraft) return context.reply('No draft ongoing');
+  currentDraft.emit('clear', context);
+  currentDraft.once('cleared', (err) => {
+    if (!err) currentDraft = null;
+  });
+}
 
 function findUsers(string = '') { // TODO: Also find user IDs that aren't specifically pings
   return [...new Set(Array.from(rawText.matchAll(userRegex), m => m[1])).values()];
