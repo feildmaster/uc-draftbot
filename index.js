@@ -87,21 +87,9 @@ const commands = [new Command({
   description: 'Stop a draft, delete associated channels.',
   handler: clear,
 }), new Command({
-  title: 'Pick Card',
-  alias: ['pick', 'pickCard', 'choose', 'chooseCard'],
-  usage: '<#>',
-  description: 'Pick a card.',
-  handler: chooseCard,
-}), new Command({
-  title: 'Kick User(s)',
-  alias: ['kick'],
-  usage: '<@user1> [... @userX]',
-  description: 'Kick user(s)',
-  handler: kickUser,
-}), new Command({
   title: 'Draft Status',
   alias: ['status', 'info'],
-  description: '',
+  description: 'View draft status',
   handler(context, args = []) {
     if (!currentDraft) {
       return context.reply('No draft currently');
@@ -109,12 +97,24 @@ const commands = [new Command({
     currentDraft.emit('status', context);
   }
 }), new Command({
+  title: 'Pick Card',
+  alias: ['pick', 'pickCard', 'choose', 'chooseCard'],
+  usage: '<#>',
+  description: 'Pick a card.',
+  handler: chooseCard,
+}), new Command({
   title: 'Leave Draft',
   alias: ['leave', 'quit'],
   description: 'Leave the draft.',
   handler(context, args = []) {
     if (currentDraft) currentDraft.emit('leave', context);
   },
+}), new Command({
+  title: 'Kick User(s)',
+  alias: ['kick'],
+  usage: '<@user1> [... @userX]',
+  description: 'Kick user(s)',
+  handler: kickUser,
 })];
 
 const helpCommand = new Command({
@@ -163,7 +163,10 @@ const helpCommand = new Command({
     if (!args.length && command === helpCommand) {
       embed.fields.push({
         name: '❯ Commands',
-        value: commands.filter(_ => _ !== helpCommand).map(c => `\`${prefix}${c.alias[0]}\`${c.description ? ` - ${c.description.split('\n')[0]}` : ''}`).join('\n'),
+        value: commands.filter(_ => _ !== helpCommand)
+          // .sort((a, b) => a.alias[0].localeCompare(b.alias[0], 'en', { sensitivity: 'base' }))
+          .map(c => `\`${prefix}${c.alias[0]}\`${c.description ? ` - ${c.description.split('\n')[0]}` : ''}`)
+          .join('\n'),
       });
     }
 
