@@ -108,6 +108,13 @@ const commands = [new Command({
     }
     currentDraft.emit('status', context);
   }
+}), new Command({
+  title: 'Leave Draft',
+  alias: ['leave', 'quit'],
+  description: 'Leave the draft.',
+  handler(context, args = []) {
+    if (currentDraft) currentDraft.emit('leave', context);
+  },
 })];
 
 const helpCommand = new Command({

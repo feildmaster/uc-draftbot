@@ -13,7 +13,7 @@ module.exports = class Command {
     usage = '',
     description = '',
     flags = [flagTemplate],
-    handler = () => {},
+    handler = (context) => context.reply('Missing Handler'),
   } = {}) {
     alias = alias.filter(_ => _.trim());
     if (!alias.length) throw new Error('No aliases provided.');

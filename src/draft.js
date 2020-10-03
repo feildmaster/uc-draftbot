@@ -222,6 +222,14 @@ module.exports = class Draft extends Emitter {
 
       context.reply({ embed });
     });
+    this.on('leave', (context) => {
+      if (this.running !== true) return;
+      const draftee = participants.find((draftee) => draftee.user === context.user.id);
+      if (!draftee) return context.reply('You are not in this draft.');
+      participants.splice(participants.indexOf(draftee), 1);
+      context.reply('You have left the draft.');
+    });
+    this.on('leave', process);
 
     users.forEach((user) => participants.push({
       user: user.id || user, // User object or ID
