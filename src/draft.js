@@ -195,6 +195,33 @@ module.exports = class Draft extends Emitter {
           }
         });
     });
+    this.on('status', (context) => {
+      const embed = {
+        title: `Draft ${this.id}: ${this.running === true ? 'Ongoing' : 'Finished'}`,
+        color: 1794964,
+        fields: [{
+          name: '❯ Settings',
+          value: [
+            `Deck Size: ${cardThreshold}`,
+            `Pack Size: ${packSize}`,
+            `Default Pack: ${defaultPack}`,
+            `Pack Sets: ${packs.join(', ')}`,
+          ].join('\n'),
+        }],
+      };
+
+      if (participants.length) {
+        embed.fields.push({
+          name: '❯ Participants',
+          value: participants.map((draftee) => {
+            const user = context.guild.members.get(draftee.user);
+            return `${user && user.mention || draftee.user} (${draftee.cards.length}/${cardThreshold})${this.running === true && !draftee.chosen ? ': Picking card' : ''}`
+          }).join('\n'),
+        });
+      }
+
+      context.reply({ embed });
+    });
 
     users.forEach((user) => participants.push({
       user: user.id || user, // User object or ID

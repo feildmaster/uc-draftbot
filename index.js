@@ -98,6 +98,16 @@ const commands = [new Command({
   usage: '<@user1> [... @userX]',
   description: 'Kick user(s)',
   handler: kickUser,
+}), new Command({
+  title: 'Draft Status',
+  alias: ['status', 'info'],
+  description: '',
+  handler(context, args = []) {
+    if (!currentDraft) {
+      return context.reply('No draft currently');
+    }
+    currentDraft.emit('status', context);
+  }
 })];
 
 const helpCommand = new Command({
