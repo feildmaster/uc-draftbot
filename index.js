@@ -59,6 +59,11 @@ const commands = [new Command({
   alias: ['start', 'startDraft', 'draft'],
   usage: '<@user1> [... @userX]',
   description: 'Start a draft',
+  examples: [
+    '`<command> @user1 @user2 --deck 30`: Runs draft until deck is at least 30 cards.',
+    '`<command> @userX @userY --packs mix --packs mix`: First two packs are mixed ut/dr.',
+    '`<command> @player @visitor --defaultPack mix`: Packs will be mixed ut/dr after the preset packs.',
+  ],
   flags: [{
     alias: ['cards', 'cardThreshold', 'deck', 'threshold'],
     usage: '<#>',
@@ -133,7 +138,7 @@ const helpCommand = new Command({
       color: 1794964,
       fields: [{
         name: '❯ Usage',
-        value: `\`${commandText}${command.usage ? ` ${command.usage}` : ''}\``,
+        value: `\`${commandText}${command.usage ? ` ${command.usage}` : ''}${command.flags.length ? ' [--flags...]' : ''}\``,
       }, {
         name: '❯ Aliases',
         value: command.alias.filter(a => a !== label.toLowerCase()).map(a => `\`${a}\``).join(', ') || '`None`',
@@ -156,7 +161,7 @@ const helpCommand = new Command({
     if (command.examples.length) {
       embed.fields.push({
         name: '❯ Examples',
-        value: command.examples.map(a => `\`${commandText} ${a}\``).join('\n'),
+        value: command.examples.map(a => a.replace('<command>', commandText)).join('\n'),
       });
     }
 
