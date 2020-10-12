@@ -203,11 +203,15 @@ function startDraft(context, args = [], flags = {}) {
   if (!users.length) {
     return context.reply('Malformed command. Users required.');
   }
+  const size = flags.packSize || flags.size;
+  if (size && parseInt(size, 10) < 1) {
+    return context.reply('Pack size must be more than zero');
+  }
   currentDraft = new Draft(connection, context.guild, {
     owner: context.user,
     users: shuffle(users),
     cardThreshold: flags.threshold || flags.cardThreshold || flags.cards || flags.deck,
-    packSize: flags.packSize || flags.size,
+    packSize: size,
     packs: parseArray(flags.packs, false),
     defaultPack: flags.defaultPack || flags.default,
   }).on('cleared', (err) => {
