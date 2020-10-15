@@ -33,7 +33,7 @@ function validateRarity({rarity: cardRarity = ''}, rarity = '', baseIsCommon = t
     case 'common': return cardRarity === 'COMMON' || baseIsCommon && cardRarity === 'BASE';
     case 'base': return cardRarity === 'BASE';
     case 'all':
-    case 'any': return cardRarity !== 'GENERATED'; // Generated is not allowed
+    case 'any': return cardRarity !== 'TOKEN';
     default: return false;
   }
 }
