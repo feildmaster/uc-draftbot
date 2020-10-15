@@ -132,7 +132,7 @@ const helpCommand = new Command({
     if (!(command instanceof Command)) return;
     const label = args.length ? args[0] : context.msg.command;
     const prefix = context.msg.prefix;
-    const commandText = `${prefix}${label}`;
+    const commandText = `${prefix === connection.user.mention ? '@me' : prefix}${label}`;
     const embed = {
       title: command.title || command.alias[0],
       color: 1794964,
