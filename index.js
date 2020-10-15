@@ -254,3 +254,7 @@ function getContext(msg) {
     }
   };
 }
+
+// Reload cards daily
+setInterval(() => cards.load()
+  .catch(console.error), 24 * 3600000);
