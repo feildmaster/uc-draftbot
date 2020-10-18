@@ -119,7 +119,7 @@ module.exports = class Draft extends Emitter {
         connection.createMessage(draftee.channel, message);
       });
     });
-    this.on('pick', (context, card = 0) => {
+    this.on('pick', (context, card = '') => {
       if (this.running !== true) return undefined;
       const { channel, user } = context;
       const draftee = participants.find((draftee) => draftee.user === (user.id || user));
@@ -129,14 +129,23 @@ module.exports = class Draft extends Emitter {
         return context.reply('Move to your draft room to use this command.');
       } else if (draftee.chosen) {
         return context.reply('You have already chosen. Please wait for the others to choose.');
-      } else if (card < 1 || card > draftee.pack.length) {
-        return context.reply(`Invalid input: ${card}`);
-      } else if (Number.isNaN(parseInt(card, 10))) {
-        const i = draftee.pack.findIndex((slot) => slot.name === card || slot.name.toLowerCase() === card.toLowerCase()) + 1;
+      }
+      const number = Number(card);
+      if (Number.isNaN(number) && card.length > 1) {
+        const i = 1 + draftee.pack.findIndex((slot) => {
+          // Simple checks
+          if (slot.name === card || slot.name.indexOf(card) >= 0) return true;
+          // Mutate checks
+          const lower1 = slot.name.toLowerCase();
+          const lower2 = card.toLowerCase();
+          return lower1 === lower2 || lower1.indexOf(lower2) >= 0;
+        });
         if (!i) {
           return context.reply(`Invalid input: ${card}`);
         }
         card = i;
+      } else if (!Number.isFinite(number) || number < 1 || number > draftee.pack.length) {
+        return context.reply(`Invalid input: \`${card}\``);
       }
       const selected = draftee.pack.splice(card - 1, 1)[0];
       draftee.cards.push(selected);

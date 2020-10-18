@@ -104,7 +104,12 @@ const commands = [new Command({
 }), new Command({
   title: 'Pick Card',
   alias: ['pick', 'pickCard', 'choose', 'chooseCard'],
-  usage: '<#>',
+  usage: '<# or Card Name>',
+  examples: [
+    '`<command> @user1 @user2 --deck 30`: Runs draft until deck is at least 30 cards.',
+    '`<prefix>chooseCard @userX @userY --packs mix --packs mix`: First two packs are mixed ut/dr.',
+    '`<command> @player @visitor --defaultPack mix`: Packs will be mixed ut/dr after the preset packs.',
+  ],
   description: 'Pick a card.',
   handler: chooseCard,
 }), new Command({
@@ -132,7 +137,8 @@ const helpCommand = new Command({
     if (!(command instanceof Command)) return;
     const label = args.length ? args[0] : context.msg.command;
     const prefix = context.msg.prefix;
-    const commandText = `${prefix === connection.user.mention ? '@me' : prefix}${label}`;
+    const commandPrefix = `${prefix === connection.user.mention ? '@me' : prefix}`;
+    const commandText = `${commandPrefix}${label}`;
     const embed = {
       title: command.title || command.alias[0],
       color: 1794964,
@@ -161,7 +167,7 @@ const helpCommand = new Command({
     if (command.examples.length) {
       embed.fields.push({
         name: '❯ Examples',
-        value: command.examples.map(a => a.replace('<command>', commandText)).join('\n'),
+        value: command.examples.map(a => a.replace('<command>', commandText).replace('<prefix>', commandPrefix)).join('\n'),
       });
     }
 
@@ -170,7 +176,7 @@ const helpCommand = new Command({
         name: '❯ Commands',
         value: commands.filter(_ => _ !== helpCommand)
           // .sort((a, b) => a.alias[0].localeCompare(b.alias[0], 'en', { sensitivity: 'base' }))
-          .map(c => `\`${prefix}${c.alias[0]}\`${c.description ? ` - ${c.description.split('\n')[0]}` : ''}`)
+          .map(c => `\`${commandPrefix}${c.alias[0]}\`${c.description ? ` - ${c.description.split('\n')[0]}` : ''}`)
           .join('\n'),
       });
     }
