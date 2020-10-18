@@ -186,15 +186,15 @@ commands.push(helpCommand);
 
 commands.forEach((command) => {
   command.alias.forEach((alias) => {
-    connection.on(`command:${alias.toLowerCase()}`, command.handler)
+    connection.on(`command:${alias.toLowerCase()}`, (...args) => command.handle(...args));
   });
 });
 
 function startDraft(context, args = [], flags = {}) {
-  if (currentDraft && currentDraft.running) {
+  if (currentDraft && currentDraft.running) { // TODO: Temporary until multi-draft allowed
     if (currentDraft.running !== 'finished') {
       return context.reply(`Sorry, there's already a draft in progress.`);
-    } else { // TODO: Temporary until multi-draft allowed
+    } else {
       return context.reply('Please clear current draft before starting new draft.');
     }
   }
@@ -229,7 +229,7 @@ function kickUser(context, args = []) {
 
 function chooseCard(context, args = []) {
   if (!currentDraft) return;
-  currentDraft.emit('pick', context, args[0]);
+  currentDraft.emit('pick', context, args.join(' '));
 }
 
 function clear(context) {

@@ -129,8 +129,14 @@ module.exports = class Draft extends Emitter {
         return context.reply('Move to your draft room to use this command.');
       } else if (draftee.chosen) {
         return context.reply('You have already chosen. Please wait for the others to choose.');
-      } else if (parseInt(card, 10) === NaN || card < 1 || card > draftee.pack.length) {
+      } else if (card < 1 || card > draftee.pack.length) {
         return context.reply(`Invalid input: ${card}`);
+      } else if (Number.isNaN(parseInt(card, 10))) {
+        const i = draftee.pack.findIndex((slot) => slot.name === card || slot.name.toLowerCase() === card.toLowerCase()) + 1;
+        if (!i) {
+          return context.reply(`Invalid input: ${card}`);
+        }
+        card = i;
       }
       const selected = draftee.pack.splice(card - 1, 1)[0];
       draftee.cards.push(selected);
