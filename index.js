@@ -137,7 +137,7 @@ const helpCommand = new Command({
     if (!(command instanceof Command)) return;
     const label = args.length ? args[0] : context.msg.command;
     const prefix = context.msg.prefix;
-    const commandPrefix = `${prefix === connection.user.mention ? '@me' : prefix}`;
+    const commandPrefix = `${prefix === connection.user.mention ? '@me ' : prefix}`;
     const commandText = `${commandPrefix}${label}`;
     const embed = {
       title: command.title || command.alias[0],
