@@ -106,9 +106,8 @@ const commands = [new Command({
   alias: ['pick', 'pickCard', 'choose', 'chooseCard'],
   usage: '<# or Card Name>',
   examples: [
-    '`<command> @user1 @user2 --deck 30`: Runs draft until deck is at least 30 cards.',
-    '`<prefix>chooseCard @userX @userY --packs mix --packs mix`: First two packs are mixed ut/dr.',
-    '`<command> @player @visitor --defaultPack mix`: Packs will be mixed ut/dr after the preset packs.',
+    '`<prefix>pick 1`: Choose card one',
+    '`<prefix>chooseCard Doggo`: Choose doggo (if exists)',
   ],
   description: 'Pick a card.',
   handler: chooseCard,
