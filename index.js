@@ -37,9 +37,7 @@ connection.on('messageCreate', (msg) => {
   const command = args.shift() || '';
 
   if (!command) return;
-  msg.prefix = prefix;
-  msg.command = command;
-  connection.emit(`command:${command.toLowerCase()}`, getContext(msg), args, flags);
+  connection.emit(`command:${command.toLowerCase()}`, getContext(msg, { rawText, prefix, command }), args, flags);
 }).on('error', (e) => {
   console.error(e);
   process.exit(1);
@@ -142,8 +140,8 @@ const helpCommand = new Command({
   handler(context, args = []) {
     const command = (args.length && (commands.find((cmd) => cmd.alias.includes(args[0].toLowerCase())) || context.reply('Command not found.'))) || helpCommand;
     if (!(command instanceof Command)) return;
-    const label = args.length ? args[0] : context.msg.command;
-    const prefix = context.msg.prefix;
+    const label = args.length ? args[0] : context.command;
+    const prefix = context.prefix;
     const commandPrefix = `${prefix === connection.user.mention ? '@me ' : prefix}`;
     const commandText = `${commandPrefix}${label}`;
     const embed = {
@@ -257,10 +255,11 @@ function findUsers(string = '') { // TODO: Also find user IDs that aren't specif
   return [...new Set(Array.from(string.matchAll(userRegex), m => m[1])).values()];
 }
 
-function getContext(msg) {
+function getContext(msg, extra) {
   const guildID = msg.guildID || msg.channel.guild.id;
   let isAdmin;
   return {
+    ...extra,
     msg,
     user: msg.author,
     channel: msg.channel,
