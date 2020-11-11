@@ -7,14 +7,14 @@ const parseArray = require('./src/util/parseArray');
 const parseFlags = require('./src/util/parseFlags');
 const shuffle = require('./src/util/shuffle');
 const Command = require('./src/command');
+const Manager = require('./src/draftManager');
 
 const token = process.env.TOKEN;
+// TODO: Per-server prefixes
 const prefixes = loadPrefixes(process.env.PREFIXES, ['@mention', '!']);
 const userRegex = /<@(\d+)>/g;
 
 const connection = new Discord.Client(token);
-
-let currentDraft = null; // TODO: temporary
 
 connection.on('messageCreate', (msg) => {
   if (!(msg.channel instanceof Discord.GuildChannel)) return;
@@ -89,16 +89,17 @@ const commands = [new Command({
 }), new Command({
   title: 'Clear Draft',
   alias: ['stop', 'clear', 'clearDraft'],
+  usage: '[id]',
   description: 'Stop a draft, delete associated channels.',
   handler: clear,
 }), new Command({
   title: 'Draft Status',
   alias: ['status', 'info'],
+  usage: '[id]',
   description: 'View draft status',
-  handler(context, args = []) {
-    if (!currentDraft) {
-      return context.reply('No draft currently');
-    }
+  handler(context, [id] = []) {
+    const currentDraft = context.manager.find(context) || id ? context.manager.get(id) : context.manager.first();
+    if (!currentDraft) return context.reply('No draft currently');
     currentDraft.emit('status', context);
   }
 }), new Command({
@@ -116,6 +117,7 @@ const commands = [new Command({
   alias: ['leave', 'quit'],
   description: 'Leave the draft.',
   handler(context, args = []) {
+    const currentDraft = context.manager.find(context, { user: true, wide: true });
     if (currentDraft) currentDraft.emit('leave', context);
   },
 }), new Command({
@@ -196,13 +198,6 @@ commands.forEach((command) => {
 });
 
 function startDraft(context, args = [], flags = {}) {
-  if (currentDraft && currentDraft.running) { // TODO: Temporary until multi-draft allowed
-    if (currentDraft.running !== 'finished') {
-      return context.reply(`Sorry, there's already a draft in progress.`);
-    } else {
-      return context.reply('Please clear current draft before starting new draft.');
-    }
-  }
   // Create Category, Create sub-channels
   const users = findUsers(args.join(' ')).map((id) => context.guild.members.get(id) || id);
   if (!users.length) {
@@ -212,34 +207,35 @@ function startDraft(context, args = [], flags = {}) {
   if (size && parseInt(size, 10) < 1) {
     return context.reply('Pack size must be more than zero');
   }
-  currentDraft = new Draft(connection, context.guild, {
+  const draft = new Draft(connection, context.guild, {
     owner: context.user,
     users: shuffle(users),
     cardThreshold: flags.threshold || flags.cardThreshold || flags.cards || flags.deck,
     packSize: size,
     packs: parseArray(flags.packs, false),
     defaultPack: flags.defaultPack || flags.default,
-  }).on('cleared', (err) => {
-    if (!err) currentDraft = null;
   });
+  
+  context.manager.register(draft);
 
-  currentDraft.emit('start', context);
+  draft.emit('start', context);
 }
 
 function kickUser(context, args = []) {
+  const currentDraft = context.manager.find(context, { owner: true });
   if (!currentDraft) return;
   const users = findUsers(args.join(' ')).map((id) => context.guild.members.get(id) || id);
   currentDraft.emit('kick', context, users);
 }
 
 function chooseCard(context, args = []) {
-  if (!currentDraft) return;
-  currentDraft.emit('pick', context, args.join(' '));
+  const currentDraft = context.manager.find(context);
+  if (currentDraft) currentDraft.emit('pick', context, args.join(' '));
 }
 
-function clear(context) {
-  if (!currentDraft) return context.reply('No draft ongoing');
-  currentDraft.emit('clear', context);
+function clear(context, [id] = []) {
+  const currentDraft = id ? context.manager.get(id) : context.manager.find(context, { owner: true });
+  if (currentDraft) currentDraft.emit('clear', context);
 }
 
 function findUsers(string = '') { // TODO: Also find user IDs that aren't specifically pings
@@ -247,13 +243,15 @@ function findUsers(string = '') { // TODO: Also find user IDs that aren't specif
 }
 
 function getContext(msg) {
+  const guildID = msg.guildID || msg.channel.guild.id;
   let isAdmin;
   return {
     msg,
     user: msg.author,
     channel: msg.channel,
     guild: msg.channel.guild,
-    guildID: msg.guildID || msg.channel.guild.id,
+    guildID,
+    manager: Manager.for(guildID),
     isAdmin() {
       if (isAdmin === undefined) {
         isAdmin = msg.channel.permissionsOf(msg.author.id).has('manageRoles');

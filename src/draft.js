@@ -3,8 +3,6 @@ const pack = require('./pack');
 const Emitter = require('events').EventEmitter;
 const Permissions = require('eris').Constants.Permissions;
 
-let id = 1;
-
 const participant = {
   user: 0,
   channel: 0,
@@ -27,7 +25,7 @@ module.exports = class Draft extends Emitter {
   } = {}) {
     super();
     if (!connection && !server) return; // Shortcircuit fake drafts
-    this.id = id++;
+    this.id = 1;
     this.server = server.id || server;
     this.round = 0;
     this.packSize = packSize;
@@ -40,6 +38,8 @@ module.exports = class Draft extends Emitter {
     participants.shift(); // delete fake participant
     let category = null;
 
+    this.channels = [''];
+    this.channels.pop();
     this.participants = participants;
 
     const process = () => {
@@ -85,8 +85,9 @@ module.exports = class Draft extends Emitter {
               allow: Permissions.readMessages,
               deny: 0,
             }],
-          }).then((channel) => {
-            draftee.channel = channel.id;
+          }).then(({ id }) => {
+            draftee.channel = id;
+            this.channels.push(id);
           }));
         });
         return Promise.all(promises);
@@ -217,7 +218,7 @@ module.exports = class Draft extends Emitter {
         }).then((msg) => {
           category = null;
           if (context && msg) {
-            context.reply(msg);
+            context.reply(`Draft${this.id}: ${msg}`);
           }
         });
     });
