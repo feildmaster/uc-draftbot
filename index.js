@@ -247,12 +247,19 @@ function findUsers(string = '') { // TODO: Also find user IDs that aren't specif
 }
 
 function getContext(msg) {
+  let isAdmin;
   return {
     msg,
     user: msg.author,
     channel: msg.channel,
     guild: msg.channel.guild,
     guildID: msg.guildID || msg.channel.guild.id,
+    isAdmin() {
+      if (isAdmin === undefined) {
+        isAdmin = msg.channel.permissionsOf(msg.author.id).has('manageRoles');
+      }
+      return isAdmin;
+    },
     reply(content) {
       return connection.createMessage(msg.channel.id, content)
         .catch(console.error);

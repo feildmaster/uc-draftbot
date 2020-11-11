@@ -273,5 +273,5 @@ module.exports = class Draft extends Emitter {
 };
 
 function isNotOwner(context, ownerID) {
-  return context.user.id !== ownerID && !context.channel.permissionsOf(context.user.id).has('manageRoles');
+  return context.user.id !== ownerID && !context.isAdmin();
 }
