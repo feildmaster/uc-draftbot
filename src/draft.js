@@ -6,7 +6,7 @@ const Permissions = require('eris').Constants.Permissions;
 const participant = {
   user: 0,
   channel: 0,
-  chosen: false,
+  chosen: 0,
   pack: [],
   cards: [],
 };
@@ -16,6 +16,7 @@ module.exports = class Draft extends Emitter {
     // finishOnThreshold = false,
     cardThreshold = 40,
     packSize = 8,
+    pick = 1,
     users = [],
     packs = ['dr', 'dr'],
     defaultPack = 'ut',
@@ -42,12 +43,26 @@ module.exports = class Draft extends Emitter {
     this.channels.pop();
     this.participants = participants;
 
-    const process = () => {
+    function showCards(draftee) {
+      const embed = {
+        title: `Choose ${pick - draftee.chosen}:`,
+        description: draftee.pack.map((card, i) => `${i + 1}: ${card.name}`).join('\n')
+      };
+      connection.createMessage(draftee.channel, { embed });
+    }
+
+    const process = (context) => {
       if (this.running !== true) return;
       // Check if still waiting
-      const waiting = participants.some((draftee) => !draftee.chosen);
+      const waiting = participants.some((draftee) => draftee.chosen !== pick);
       if (!waiting || !participants.length) {
         this.emit('nextRound');
+      }
+      if (context) {
+        const draftee = participants.find((draftee) => draftee.user === context.user.id);
+        if (draftee.chosen !== pick) {
+          showCards(draftee);
+        }
       }
     };
 
@@ -127,9 +142,8 @@ module.exports = class Draft extends Emitter {
       }
       // Message current pack
       participants.forEach((draftee) => {
-        const message = draftee.pack.map((card, i) => `${i + 1}: ${card.name}`).join('\n');
-        draftee.chosen = false;
-        connection.createMessage(draftee.channel, message);
+        draftee.chosen = 0;
+        showCards(draftee);
       });
     });
     this.on('pick', (context, card = '') => {
@@ -140,7 +154,7 @@ module.exports = class Draft extends Emitter {
         return context.reply('Not registered to Draft.');
       } else if (draftee.channel !== (channel.id || channel)) {
         return context.reply('Move to your draft room to use this command.');
-      } else if (draftee.chosen) {
+      } else if (draftee.chosen === pick) {
         return context.reply('You have already chosen. Please wait for the others to choose.');
       }
       const number = Number(card);
@@ -162,7 +176,7 @@ module.exports = class Draft extends Emitter {
       }
       const selected = draftee.pack.splice(card - 1, 1)[0];
       draftee.cards.push(selected);
-      draftee.chosen = true;
+      draftee.chosen += 1;
       return context.reply(`Chosen card ${card}: ${selected.name}`);
     });
     this.on('pick', process);
@@ -197,7 +211,7 @@ module.exports = class Draft extends Emitter {
       });
       Promise.all(resp)
         .then(responses => context.reply(responses.join('\n') || 'Invalid syntax.'))
-        .then(process);
+        .then(() => process());
     });
     this.on('clear', (context) => {
       if (this.running === 'finished' || !category) return;
@@ -231,6 +245,7 @@ module.exports = class Draft extends Emitter {
           value: [
             `Deck Size: ${cardThreshold}`,
             `Pack Size: ${packSize}`,
+            `Pick: ${pick}`,
             `Default Pack: ${defaultPack}`,
             `Pack Sets: ${packs.join(', ')}`,
           ].join('\n'),
@@ -242,7 +257,7 @@ module.exports = class Draft extends Emitter {
           name: '❯ Participants',
           value: participants.map((draftee) => {
             const user = context.guild.members.get(draftee.user);
-            return `${user && user.mention || draftee.user} (${draftee.cards.length}/${cardThreshold})${this.running === true && !draftee.chosen ? ': Picking card' : ''}`
+            return `${user && user.mention || draftee.user} (${draftee.cards.length}/${cardThreshold})${this.running === true && draftee.chosen !== pick ? `: Picking cards (${draftee.chosen}/${pick})` : ''}`
           }).join('\n'),
         });
       }
@@ -256,12 +271,12 @@ module.exports = class Draft extends Emitter {
       participants.splice(participants.indexOf(draftee), 1);
       context.reply('You have left the draft.');
     });
-    this.on('leave', process);
+    this.on('leave', () => process());
 
     users.forEach((user) => participants.push({
       user: user.id || user, // User object or ID
       channel: 0,
-      chosen: false,
+      chosen: 0,
       pack: [],
       cards: [],
     }));

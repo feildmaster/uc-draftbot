@@ -63,6 +63,7 @@ const commands = [new Command({
     '`<command> @user1 @user2 --deck 30`: Runs draft until deck is at least 30 cards.',
     '`<command> @userX @userY --packs mix --packs mix`: First two packs are mixed ut/dr.',
     '`<command> @player @visitor --defaultPack mix`: Packs will be mixed ut/dr after the preset packs.',
+    '`<command> @player @visitor --pick 2`: Pick 2 cards each round.',
   ],
   flags: [{
     alias: ['cards', 'cardThreshold', 'deck', 'threshold'],
@@ -84,6 +85,11 @@ const commands = [new Command({
     usage: '<ut | dr | mix>',
     default: 'ut',
     description: 'Set default pack type.',
+  }, {
+    alias: ['pick', 'pull'],
+    usage: '<#>',
+    default: 1,
+    description: 'Set amount of cards you can pull per round. This value must be a factor of packSize.',
   }],
   handler: startDraft,
 }), new Command({
@@ -205,7 +211,15 @@ function startDraft(context, args = [], flags = {}) {
   }
   const size = flags.packSize || flags.size;
   if (size && parseInt(size, 10) < 1) {
-    return context.reply('Pack size must be more than zero');
+    return context.reply('Pack size must be more than zero.');
+  }
+  const pick = (flags.pick || flags.pull) && parseInt(flags.pick || flags.pull, 10);
+  if (pick !== undefined) {
+    const _size = size || 8;
+    if (Number.isNaN(pick)) return context.reply('Pick is not a number.');
+    if (pick > _size) return context.reply(`Pick can't be larger than pack size (${pick} > ${_size}).`);
+    if (pick < 1) return context.reply('Pick must be at least 1.');
+    if (_size % pick !== 0) return context.reply(`Pick (${pick}) is not a factor of ${_size}.`);
   }
   const draft = new Draft(connection, context.guild, {
     owner: context.user,
@@ -214,6 +228,7 @@ function startDraft(context, args = [], flags = {}) {
     packSize: size,
     packs: parseArray(flags.packs, false),
     defaultPack: flags.defaultPack || flags.default,
+    pick,
   });
   
   context.manager.register(draft);
