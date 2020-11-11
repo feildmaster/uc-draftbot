@@ -44,11 +44,11 @@ module.exports = class Draft extends Emitter {
     this.participants = participants;
 
     function showCards(draftee) {
-      const embed = {
-        title: `Choose ${pick - draftee.chosen}:`,
-        description: draftee.pack.map((card, i) => `${i + 1}: ${card.name}`).join('\n')
-      };
-      connection.createMessage(draftee.channel, { embed });
+      const message = [
+        `**Choose ${pick - draftee.chosen}:**`,
+        draftee.pack.map((card, i) => `${i + 1}: ${card.name}`).join('\n')
+      ].join('\n');
+      connection.createMessage(draftee.channel, message);
     }
 
     const process = (context) => {
