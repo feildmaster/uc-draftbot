@@ -58,7 +58,7 @@ const commands = [new Command({
   title: 'Start Draft',
   alias: ['start', 'startDraft', 'draft'],
   usage: '<@user1> [... @userX]',
-  description: 'Start a draft',
+  description: 'Start a draft.',
   examples: [
     '`<command> @user1 @user2 --deck 30`: Runs draft until deck is at least 30 cards.',
     '`<command> @userX @userY --packs mix --packs mix`: First two packs are mixed ut/dr.',
@@ -83,7 +83,7 @@ const commands = [new Command({
     alias: ['defaultPack', 'default'],
     usage: '<ut | dr | mix>',
     default: 'ut',
-    description: 'Set default pack type',
+    description: 'Set default pack type.',
   }],
   handler: startDraft,
 }), new Command({
@@ -96,7 +96,7 @@ const commands = [new Command({
   title: 'Draft Status',
   alias: ['status', 'info'],
   usage: '[id]',
-  description: 'View draft status',
+  description: 'View draft status.',
   handler(context, [id] = []) {
     const currentDraft = context.manager.find(context) || id ? context.manager.get(id) : context.manager.first();
     if (!currentDraft) return context.reply('No draft currently');
@@ -124,7 +124,7 @@ const commands = [new Command({
   title: 'Kick User(s)',
   alias: ['kick'],
   usage: '<@user1> [... @userX]',
-  description: 'Kick user(s)',
+  description: 'Kick user(s).',
   handler: kickUser,
 })];
 
