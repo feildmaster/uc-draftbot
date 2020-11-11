@@ -1,10 +1,17 @@
-const { Permission } = require('eris');
 const pack = require('./pack');
 
 const Emitter = require('events').EventEmitter;
 const Permissions = require('eris').Constants.Permissions;
 
 let id = 1;
+
+const participant = {
+  user: 0,
+  channel: 0,
+  chosen: false,
+  pack: [],
+  cards: [],
+};
 
 module.exports = class Draft extends Emitter {
   constructor(connection, server, {
@@ -19,6 +26,7 @@ module.exports = class Draft extends Emitter {
     },
   } = {}) {
     super();
+    if (!connection && !server) return; // Shortcircuit fake drafts
     this.id = id++;
     this.server = server.id || server;
     this.round = 0;
@@ -26,9 +34,13 @@ module.exports = class Draft extends Emitter {
     this.packs = packs;
     this.defaultPack = defaultPack;
     this.running = false;
+    this.owner = owner;
 
-    let participants = [];
+    const participants = [participant];
+    participants.shift(); // delete fake participant
     let category = null;
+
+    this.participants = participants;
 
     const process = () => {
       if (this.running !== true) return;
@@ -166,7 +178,7 @@ module.exports = class Draft extends Emitter {
     this.on('kick', (context, users = []) => {
       if (this.running !== true) return;
       const resp = [];
-      if (isOwner(context, owner.id || owner)) {
+      if (isNotOwner(context, owner.id || owner)) {
         return context.reply('Only owner can kick.');
       }
       users.forEach((user) => {
@@ -187,8 +199,8 @@ module.exports = class Draft extends Emitter {
         .then(process);
     });
     this.on('clear', (context) => {
-      if (!this.running || !category) return;
-      if (context && isOwner(context, owner.id || owner)) {
+      if (this.running === 'finished' || !category) return;
+      if (context && isNotOwner(context, owner.id || owner)) {
         this.emit('cleared', 'Missing Permissions');
         return context.reply('Only owner can clear draft.');
       }
@@ -196,15 +208,14 @@ module.exports = class Draft extends Emitter {
       return Promise.all(promises)
         .then(() => connection.deleteChannel(category.id))
         .then(() => {
-          category = null;
           this.emit('finished');
           this.emit('cleared');
           return 'Cleared draft rooms.';
         }).catch((e = '') => {
-          context.reply();
           this.emit('cleared', e);
           return `Error clearing draft: ${e.message || e}`;
         }).then((msg) => {
+          category = null;
           if (context && msg) {
             context.reply(msg);
           }
@@ -261,6 +272,6 @@ module.exports = class Draft extends Emitter {
   }
 };
 
-function isOwner(context, owner) {
-  return context.user.id !== owner && !context.channel.permissionsOf(context.user.id).has('manageRoles');
+function isNotOwner(context, ownerID) {
+  return context.user.id !== ownerID && !context.channel.permissionsOf(context.user.id).has('manageRoles');
 }
