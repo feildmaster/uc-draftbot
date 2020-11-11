@@ -1,5 +1,6 @@
 module.exports = (overrides = '', defaults = []) => {
-  const set = new Set();
+  const set = new Set(['']);
+  set.delete('');
 
   let temp = defaults;
   if (overrides) {
