@@ -57,8 +57,7 @@ module.exports = class Draft extends Emitter {
       const waiting = participants.some((draftee) => draftee.chosen !== pick);
       if (!waiting || !participants.length) {
         this.emit('nextRound');
-      }
-      if (context) {
+      } else if (context) {
         const draftee = participants.find((draftee) => draftee.user === context.user.id);
         if (draftee.chosen !== pick) {
           showCards(draftee);
