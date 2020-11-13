@@ -40,7 +40,7 @@ connection.on('messageCreate', (msg) => {
   connection.emit(`command:${command.toLowerCase()}`, getContext(msg, { rawText, prefix, command }), args, flags);
 }).on('error', (e) => {
   console.error(e);
-  process.exit(1);
+  // process.exit(1);
 });
 
 cards.load()
