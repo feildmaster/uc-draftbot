@@ -54,7 +54,7 @@ class Manager {
   }
 
   get(id = '0') {
-    return [...this.drafts.values()].find(draft => '' + draft.id === id);
+    return [...this.drafts.values()].find(draft => draft.id == id);
   }
 
   register(draft = placeholder) {
