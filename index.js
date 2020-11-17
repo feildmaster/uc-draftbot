@@ -36,8 +36,7 @@ connection.on('messageCreate', (msg) => {
   const args = rawText.split(/\s+/g);
   const command = args.shift() || '';
 
-  if (!command) return;
-  connection.emit(`command:${command.toLowerCase()}`, getContext(msg, { rawText, prefix, command }), args, flags);
+  if (command) connection.emit(`command:${command.toLowerCase()}`, getContext(msg, { rawText, prefix, command }), args, flags);
 }).on('error', (e) => {
   console.error(e);
   // process.exit(1);
@@ -103,8 +102,8 @@ const commands = [new Command({
   description: 'View draft status.',
   handler(context, [id] = []) {
     const currentDraft = context.manager.find(context) || id ? context.manager.get(id) : context.manager.first();
-    if (!currentDraft) return context.reply('No draft currently');
-    currentDraft.emit('status', context);
+    if (currentDraft) currentDraft.emit('status', context);
+    else context.reply('No draft currently');
   }
 }), new Command({
   title: 'Pick Card',
@@ -123,6 +122,7 @@ const commands = [new Command({
   handler(context, args = []) {
     const currentDraft = context.manager.find(context, { user: true, wide: true });
     if (currentDraft) currentDraft.emit('leave', context);
+    else context.reply('Not participating in any drafts.');
   },
 }), new Command({
   title: 'Kick User(s)',
@@ -244,11 +244,13 @@ function kickUser(context, args = []) {
 function chooseCard(context, args = []) {
   const currentDraft = context.manager.find(context);
   if (currentDraft) currentDraft.emit('pick', context, args.join(' '));
+  else context.reply('Move to your draft room to use this command.');
 }
 
 function clear(context, [id] = []) {
   const currentDraft = id ? context.manager.get(id) : context.manager.find(context, { owner: true });
   if (currentDraft) currentDraft.emit('clear', context);
+  else context.reply(id ? `Draft (${id}) not found` : `No draft found, perhaps include the ID?`);
 }
 
 function findUsers(string = '') { // TODO: Also find user IDs that aren't specifically pings
