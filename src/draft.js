@@ -224,12 +224,12 @@ module.exports = class Draft extends Emitter {
         .then(() => {
           this.emit('finished');
           this.emit('cleared');
+          category = null;
           return 'Cleared draft rooms.';
         }).catch((e = '') => {
           this.emit('cleared', e);
           return `Error clearing draft: ${e.message || e}`;
         }).then((msg) => {
-          category = null;
           if (context && msg) {
             context.reply(`Draft${this.id}: ${msg}`);
           }
