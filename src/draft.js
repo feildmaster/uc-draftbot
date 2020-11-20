@@ -11,6 +11,11 @@ const participant = {
   cards: [],
 };
 
+const welcomeMessage = [
+  'Welcome to another Undercards Draft!',
+  'Choose a card with `!pick <# or Card Name>`, for more help use `!help`.',
+].join('\n');
+
 module.exports = class Draft extends Emitter {
   constructor(connection, server, {
     // finishOnThreshold = false,
@@ -43,12 +48,16 @@ module.exports = class Draft extends Emitter {
     this.channels.pop();
     this.participants = participants;
 
+    function sendMessage(draftee, message) {
+      return connection.createMessage(draftee.channel, message);
+    }
+
     function showCards(draftee) {
       const message = [
         `**Choose ${pick - draftee.chosen}:**`,
         draftee.pack.map((card, i) => `${i + 1}: ${card.name}`).join('\n')
       ].join('\n');
-      connection.createMessage(draftee.channel, message);
+      return sendMessage(draftee, message);
     }
 
     const process = (context) => {
@@ -102,6 +111,7 @@ module.exports = class Draft extends Emitter {
           }).then(({ id }) => {
             draftee.channel = id;
             this.channels.push(id);
+            return sendMessage(draftee, welcomeMessage);
           }));
         });
         return Promise.all(promises);
@@ -222,7 +232,6 @@ module.exports = class Draft extends Emitter {
       return Promise.all(promises)
         .then(() => connection.deleteChannel(category.id))
         .then(() => {
-          this.emit('finished');
           this.emit('cleared');
           category = null;
           return 'Cleared draft rooms.';
