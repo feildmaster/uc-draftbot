@@ -231,10 +231,14 @@ module.exports = class Draft extends Emitter {
       const promises = category.channels.map((channel) => connection.deleteChannel(channel.id));
       return Promise.all(promises)
         .then(() => connection.deleteChannel(category.id))
-        .then(() => {
+        .catch((e) => {
+          if (e.message !== 'Unknown Channel') {
+            throw e;
+          }
+        }).then(() => {
           this.emit('cleared');
           category = null;
-          return 'Cleared draft rooms.';
+          return `Cleared.`;
         }).catch((e = '') => {
           this.emit('cleared', e);
           return `Error clearing draft: ${e.message || e}`;
