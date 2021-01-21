@@ -28,7 +28,7 @@ class Manager {
   }
 
   running() {
-    return [...this.drafts.values()].find(draft => draft.running !== 'finished');
+    return [...this.drafts.values()].find(draft => draft.running && draft.running !== 'finished');
   }
 
   finished() {
