@@ -223,7 +223,7 @@ module.exports = class Draft extends Emitter {
         .then(() => process());
     });
     this.on('clear', (context) => {
-      if (this.running === 'finished' || !category) return;
+      if (!category) return;
       if (context && isNotOwner(context, owner.id || owner)) {
         this.emit('cleared', 'Missing Permissions');
         return context.reply('Only owner can clear draft.');
